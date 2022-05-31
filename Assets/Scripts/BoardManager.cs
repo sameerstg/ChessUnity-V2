@@ -8,7 +8,7 @@ public class BoardManager : MonoBehaviour
 {
     public static BoardManager _instance;
 
-    public static Grid grid;
+    public Grid grid;
     public List<GameObject> blackPiecePrefab, whitePiecePrefab;
     Vector3 pos;
     GameObject dotParrent;
@@ -124,12 +124,12 @@ public class BoardManager : MonoBehaviour
                     grid.py[i].x[j].transform.position = pos;
                     if (grid.py[i].x[j].name.StartsWith("B"))
                     {
-                      
-                        grid.py[i].x[j].GetComponent<Piece>().InitializeClass(name, colorSide.black.ToString(), new Vector2(j, i));
+                        grid.py[i].x[j].GetComponent<Piece>().InitializeClass(name, colorSide.Black.ToString(), new Vector2(j, i));
                     }
                     else
                     {
-                        grid.py[i].x[j].GetComponent<Piece>().InitializeClass(name, colorSide.white.ToString(), new Vector2(j, i));
+
+                        grid.py[i].x[j].GetComponent<Piece>().InitializeClass(name, colorSide.White.ToString(), new Vector2(j, i));
 
                     }
 

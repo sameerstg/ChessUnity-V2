@@ -6,11 +6,11 @@ public class Enums : MonoBehaviour
 {
     public enum colorSide
     {
-        white,black
+        White,Black
     }
     public enum pieceName
     {
-        BPawn,WPawn, BKnight,WKnight,BBishop,WBishop
+        BPawn,WPawn, BKnight,WKnight,BBishop,WBishop,WQueen,BQueen,WRook,BRook,WKing, BKing
     }
     public enum coordinates
     {

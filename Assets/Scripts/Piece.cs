@@ -14,24 +14,30 @@ public class Piece : MonoBehaviour
     public Vector2 position;
 
     BoardManager bM;
+    Moves moves;
     //  for local functions
     Vector3 pos;
     Vector3 scale;
     bool isHovered;
+    private void Awake()
+    {
+        moves = Moves._instance;
+    }
     private void Start()
     {
         bM = BoardManager._instance;
+
     }
     public void InitializeClass(string name, string color, Vector2 position)
     {
-        if (name == pieceName.WPawn.ToString())
+        if (name.Contains(pieceName.WPawn.ToString()))
         {
             piece = new WPawn(color, position);
         }
         else if (name == pieceName.BPawn.ToString())
         {
             piece = new BPawn(color, position);
-            
+
         }
         else if (name == pieceName.BKnight.ToString())
         {
@@ -40,7 +46,7 @@ public class Piece : MonoBehaviour
         }
         else if (name.Contains(pieceName.WKnight.ToString()))
         {
-            
+
             piece = new BKnight(color, position);
 
         }
@@ -54,12 +60,37 @@ public class Piece : MonoBehaviour
             piece = new WBishop(color, position);
 
         }
-        else
+        else if (name.Contains(pieceName.WQueen.ToString()))
         {
-            
-            piece = new WPawn(color, position);
-        }
+            piece = new WQueen(color, position);
 
+        }
+        else if (name.Contains(pieceName.BQueen.ToString()))
+        {
+            piece = new BQueen(color, position);
+
+        }
+        else if (name.Contains(pieceName.WRook.ToString()))
+        {
+            piece = new WRook(color, position);
+
+        }
+        else if (name.Contains(pieceName.BRook.ToString()))
+        {
+            piece = new BRook(color, position);
+
+        }
+        else if (name.Contains(pieceName.WKing.ToString()))
+        {
+            piece = new Wking(color, position);
+
+        }
+        else if (name.Contains(pieceName.BKing.ToString()))
+        {
+            piece = new Bking(color, position);
+
+        }
+        piece.Moves = moves;
         piece.Name = name;
         this.name = piece.Name;
         this.color = piece.Color;
@@ -69,12 +100,12 @@ public class Piece : MonoBehaviour
         possibleMoves = piece.PossibleMoves;
         this.position = piece.Position;
 
-
     }
     private void OnMouseDown()
     {
-        print(piece);
-        print(piece.Name);
+        /*        print(piece);
+                print(piece.Name);
+        */
         bM.Deselect();
         piece.GetAllMoves();
         bM.ValidatePossiblities(piece.Position);
@@ -125,61 +156,37 @@ public class WPawn : IPiece
     public override void GetAllMoves()
     {
         PossibleMoves = new Possiblity();
-        try
+
+        Vector2 move;
+        GameObject go;
+        move = Moves.Up1(Position);
+        if (Moves.InLimit(move)&& Moves.GetGoByVector2(move) == null)
         {
-            if (BoardManager.grid.py[(int)Position.y + 1].x[(int)Position.x] == null)
+            PossibleMoves.Possiblities.Add(move);
+            if (!IsMovedBefore)
             {
-                PossibleMoves.Possiblities.Add(Moves._instance.Up1(Position));
-                try
+                move = Moves.Up2(Position);
+                if (Moves.InLimit(move)&& Moves.GetGoByVector2(move) == null)
                 {
-                    if (!IsMovedBefore && BoardManager.grid.py[(int)Position.y + 2].x[(int)Position.x] == null)
-                    {
-                        PossibleMoves.Possiblities.Add(Moves._instance.Up2(Position));
-                    }
-                }
-                catch (System.Exception)
-                {
-
-
+                    PossibleMoves.Possiblities.Add(move);
                 }
             }
         }
-        catch (System.Exception)
+        move = Moves.UpR1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move)&& go != null && go.tag != Color)
         {
-
-
-
+            PossibleMoves.Possiblities.Add(move);
         }
-        try
+        move = Moves.UpL1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move)&& go != null && go.tag != Color)
         {
-            if (BoardManager.grid.py[(int)Position.y + 1].x[(int)Position.x + 1] != null &&
-           BoardManager.grid.py[(int)Position.y + 1].x[(int)Position.x + 1].tag == colorSide.black.ToString())
-            {
-                PossibleMoves.Possiblities.Add(Moves._instance.UpR1(Position));
-            }
+            PossibleMoves.Possiblities.Add(move);
         }
-        catch (System.Exception)
-        {
 
 
-        }
-        try
-        {
-
-            if (BoardManager.grid.py[(int)Position.y + 1].x[(int)Position.x - 1] != null &&
-              BoardManager.grid.py[(int)Position.y + 1].x[(int)Position.x - 1].tag == colorSide.black.ToString())
-            {
-                PossibleMoves.Possiblities.Add(Moves._instance.UpL1(Position));
-            }
-
-        }
-        catch (System.Exception)
-        {
-
-
-        }
-        
-        BoardManager.grid.possiblities = PossibleMoves;
+        BoardManager._instance.grid.possiblities = PossibleMoves;
         Validate();
     }
 
@@ -210,63 +217,37 @@ public class BPawn : IPiece
 
     public override void GetAllMoves()
     {
+
         PossibleMoves = new Possiblity();
-        try
+        Vector2 move;
+        GameObject go;
+        move = Moves.Down1(Position);
+        if (Moves.InLimit(move)&& Moves.GetGoByVector2(move) == null)
         {
-            if (BoardManager.grid.py[(int)Position.y - 1].x[(int)Position.x] == null)
+            PossibleMoves.Possiblities.Add(move);
+            if (!IsMovedBefore)
             {
-                PossibleMoves.Possiblities.Add(Moves._instance.Down1(Position));
-                try
+                move = Moves.Down2(Position);
+                if (Moves.InLimit(move)&& Moves.GetGoByVector2(move) == null)
                 {
-                    if (!IsMovedBefore && BoardManager.grid.py[(int)Position.y - 2].x[(int)Position.x] == null)
-                    {
-                        PossibleMoves.Possiblities.Add(Moves._instance.Down2(Position));
-                    }
-                }
-                catch (System.Exception)
-                {
-
-
+                    PossibleMoves.Possiblities.Add(move);
                 }
             }
         }
-        catch (System.Exception)
+        move = Moves.DownR1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move)&& go != null && go.tag != Color)
         {
-
-
-
+            PossibleMoves.Possiblities.Add(move);
         }
-        
-        try
+        move = Moves.DownL1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move)&& go != null && go.tag != Color)
         {
-            if (BoardManager.grid.py[(int)Position.y - 1].x[(int)Position.x + 1] != null &&
-           BoardManager.grid.py[(int)Position.y - 1].x[(int)Position.x + 1].tag == colorSide.white.ToString())
-            {
-                PossibleMoves.Possiblities.Add(Moves._instance.DownR1(Position));
-            }
-        }
-        catch (System.Exception)
-        {
-
-
-        }
-        try
-        {
-
-            if (BoardManager.grid.py[(int)Position.y - 1].x[(int)Position.x - 1] != null &&
-              BoardManager.grid.py[(int)Position.y - 1].x[(int)Position.x - 1].tag == colorSide.white.ToString())
-            {
-                PossibleMoves.Possiblities.Add(Moves._instance.DownL1(Position));
-            }
-
-        }
-        catch (System.Exception)
-        {
-
-
+            PossibleMoves.Possiblities.Add(move);
         }
 
-        BoardManager.grid.possiblities = PossibleMoves;
+        BoardManager._instance.grid.possiblities = PossibleMoves;
         Validate();
     }
 
@@ -298,9 +279,9 @@ public class BKnight : IPiece
     public override void GetAllMoves()
     {
         PossibleMoves = new Possiblity();
-        PossibleMoves.Possiblities = Moves._instance.L(Position);
+        PossibleMoves.Possiblities = Moves.L(Position);
 
-        BoardManager.grid.possiblities = PossibleMoves;
+        BoardManager._instance.grid.possiblities = PossibleMoves;
         Validate();
     }
 
@@ -332,9 +313,9 @@ public class WBishop : IPiece
     public override void GetAllMoves()
     {
         PossibleMoves = new Possiblity();
-        PossibleMoves.Possiblities = Moves._instance.Diagonal(Position);
+        PossibleMoves.Possiblities = Moves.Diagonal(Position, Color);
 
-        BoardManager.grid.possiblities = PossibleMoves;
+        BoardManager._instance.grid.possiblities = PossibleMoves;
         Validate();
     }
 
@@ -366,9 +347,424 @@ public class BBishop : IPiece
     public override void GetAllMoves()
     {
         PossibleMoves = new Possiblity();
-        PossibleMoves.Possiblities = Moves._instance.Diagonal(Position);
+        PossibleMoves.Possiblities = Moves.Diagonal(Position, Color);
 
-        BoardManager.grid.possiblities = PossibleMoves;
+        BoardManager._instance.grid.possiblities = PossibleMoves;
+        Validate();
+    }
+
+    public override void GetPossibleMovesCount()
+    {
+        PossibleMovesCount = PossibleMoves.Possiblities.Count;
+    }
+
+    public override void Move(Vector2 pos)
+    {
+        base.Move(pos);
+    }
+
+    public override void Validate()
+    {
+
+        GetPossibleMovesCount();
+    }
+}
+[System.Serializable]
+public class WQueen : IPiece
+{
+    public WQueen(string color, Vector2 position)
+    {
+        Color = color;
+        Position = position;
+    }
+
+    public override void GetAllMoves()
+    {
+        PossibleMoves = new Possiblity();
+        PossibleMoves.Possiblities = Moves.Diagonal(Position, Color);
+        PossibleMoves.Possiblities.AddRange(Moves.Plus(Position, Color));
+
+        BoardManager._instance.grid.possiblities = PossibleMoves;
+        Validate();
+    }
+
+    public override void GetPossibleMovesCount()
+    {
+        PossibleMovesCount = PossibleMoves.Possiblities.Count;
+    }
+
+    public override void Move(Vector2 pos)
+    {
+        base.Move(pos);
+    }
+
+    public override void Validate()
+    {
+
+        GetPossibleMovesCount();
+    }
+}
+[System.Serializable]
+public class BQueen : IPiece
+{
+    public BQueen(string color, Vector2 position)
+    {
+        Color = color;
+        Position = position;
+    }
+
+    public override void GetAllMoves()
+    {
+        PossibleMoves = new Possiblity();
+        PossibleMoves.Possiblities = Moves.Diagonal(Position, Color);
+        PossibleMoves.Possiblities.AddRange(Moves.Plus(Position, Color));
+
+        BoardManager._instance.grid.possiblities = PossibleMoves;
+        Validate();
+    }
+
+    public override void GetPossibleMovesCount()
+    {
+        PossibleMovesCount = PossibleMoves.Possiblities.Count;
+    }
+
+    public override void Move(Vector2 pos)
+    {
+        base.Move(pos);
+    }
+
+    public override void Validate()
+    {
+
+        GetPossibleMovesCount();
+    }
+}
+[System.Serializable]
+public class WRook : IPiece
+{
+    public WRook(string color, Vector2 position)
+    {
+        Color = color;
+        Position = position;
+    }
+
+    public override void GetAllMoves()
+    {
+        PossibleMoves = new Possiblity();
+        PossibleMoves.Possiblities = Moves.Plus(Position, Color);
+
+        BoardManager._instance.grid.possiblities = PossibleMoves;
+        Validate();
+    }
+
+    public override void GetPossibleMovesCount()
+    {
+        PossibleMovesCount = PossibleMoves.Possiblities.Count;
+    }
+
+    public override void Move(Vector2 pos)
+    {
+        base.Move(pos);
+    }
+
+    public override void Validate()
+    {
+
+        GetPossibleMovesCount();
+    }
+}
+[System.Serializable]
+public class BRook : IPiece
+{
+    public BRook(string color, Vector2 position)
+    {
+        Color = color;
+        Position = position;
+    }
+
+    public override void GetAllMoves()
+    {
+        PossibleMoves = new Possiblity();
+        PossibleMoves.Possiblities = Moves.Plus(Position, Color);
+        BoardManager._instance.grid.possiblities = PossibleMoves;
+        Validate();
+    }
+
+    public override void GetPossibleMovesCount()
+    {
+        PossibleMovesCount = PossibleMoves.Possiblities.Count;
+    }
+
+    public override void Move(Vector2 pos)
+    {
+        base.Move(pos);
+    }
+
+    public override void Validate()
+    {
+
+        GetPossibleMovesCount();
+    }
+}
+[System.Serializable]
+public class Wking : IPiece
+{
+    public Wking(string color, Vector2 position)
+    {
+        Color = color;
+        Position = position;
+    }
+
+    public override void GetAllMoves()
+    {
+        PossibleMoves = new Possiblity();
+        Vector2 move;
+        GameObject go;
+        move = Moves.DownL1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move))
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if (go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.DownR1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move))
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if (go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.Down1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move))
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if (go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.UpL1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move))
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if (go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.UpR1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move))
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if (go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.Up1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move))
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if (go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.Left(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move))
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if (go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.Right(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move))
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if (go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+
+        BoardManager._instance.grid.possiblities = PossibleMoves;
+        Validate();
+    }
+
+    public override void GetPossibleMovesCount()
+    {
+        PossibleMovesCount = PossibleMoves.Possiblities.Count;
+    }
+
+    public override void Move(Vector2 pos)
+    {
+        base.Move(pos);
+    }
+
+    public override void Validate()
+    {
+
+        GetPossibleMovesCount();
+    }
+}
+[System.Serializable]
+public class Bking : IPiece
+{
+    public Bking(string color, Vector2 position)
+    {
+        Color = color;
+        Position = position;
+    }
+
+    public override void GetAllMoves()
+    {
+        PossibleMoves = new Possiblity();
+        Vector2 move;
+        GameObject go;
+        move = Moves.DownL1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move) )
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if(go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.DownR1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move) )
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if(go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.Down1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move) )
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if(go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.UpL1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move) )
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if(go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.UpR1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move) )
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if(go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.Up1(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move) )
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if(go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.Left(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move) )
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if(go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+        move = Moves.Right(Position);
+        go = Moves.GetGoByVector2(move);
+        if (Moves.InLimit(move) )
+        {
+            if (go == null)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+            else if(go.tag != Color)
+            {
+                PossibleMoves.Possiblities.Add(move);
+            }
+        }
+
+        BoardManager._instance.grid.possiblities = PossibleMoves;
         Validate();
     }
 
@@ -398,6 +794,7 @@ public abstract class IPiece
     Possiblity possibleMoves;
     Vector2 position;
     Transform transform;
+    Moves moves;
     public int PossibleMovesCount { get => possibleMovesCount; set => possibleMovesCount = value; }
     public bool IsMovedBefore { get => isMovedBefore; set => isMovedBefore = value; }
     public Possiblity PossibleMoves { get => possibleMoves; set => possibleMoves = value; }
@@ -405,6 +802,7 @@ public abstract class IPiece
     public Vector2 Position { get => position; set => position = value; }
     public string Color { get => color; set => color = value; }
     public Transform Transform { get => transform; set => transform = value; }
+    public Moves Moves { get => moves; set => moves = value; }
 
     public abstract void GetAllMoves();
     public abstract void GetPossibleMovesCount();
