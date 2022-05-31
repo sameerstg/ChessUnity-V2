@@ -15,6 +15,27 @@ public class Moves : MonoBehaviour
     {
         bm = BoardManager._instance;
     }
+    public bool IsDiagonalTaker(GameObject go)
+    {
+        if (go.name.Contains("Bishop")|| go.name.Contains("Queen"))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }public bool IsPlusTaker(GameObject go)
+    {
+        if (go.name.Contains("Rook")|| go.name.Contains("Queen"))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
     public bool InLimit(Vector2 pos)
     {
         if (pos.x >= 0 && pos.x <= 7 && pos.y >= 0 && pos.y <= 7)
@@ -23,7 +44,7 @@ public class Moves : MonoBehaviour
         }
         return false;
     }
-    Tuple<Vector2, bool> GetSequenceValitdation(Vector2 pos, string color)
+    public Tuple<Vector2, bool> GetSequenceValitdation(Vector2 pos, string color)
     {
         if (InLimit(new Vector2(pos.x, pos.y)))
         {
@@ -46,6 +67,45 @@ public class Moves : MonoBehaviour
         {
             return new Tuple<Vector2, bool>(new Vector2(-1, -1), false);
         }
+    }
+    // first is check and second is permit to iterate further
+    public Tuple<bool, bool> GetSequenceValitdationForCheck(Vector2 pos, string color)
+    {
+        if (InLimit(new Vector2(pos.x, pos.y)))
+        {
+
+            if (bm.grid.py[(int)pos.y].x[(int)pos.x] == null)
+            {
+                return new Tuple<bool, bool>(false, true);
+            }
+            else if (color != bm.grid.py[(int)pos.y].x[(int)pos.x].tag)
+            {
+                return new Tuple<bool, bool>(true, false);
+            }
+            else
+            {
+                return new Tuple<bool, bool>(false, false);
+
+            }
+        }
+        else
+        {
+            return new Tuple<bool, bool>(false, false);
+        }
+    }
+    public Tuple< bool,GameObject> GetValitdationForCheck(Vector2 pos,string color)
+    {
+
+        if (InLimit(pos) )
+        {
+            GameObject go = GetGoByVector2(pos);
+            if (go != null && go.tag !=color)
+            {
+                return new Tuple<bool, GameObject>(true, go);
+            }
+        }
+        return new Tuple<bool, GameObject>(false, null);
+
     }
     public GameObject GetGoByVector2(Vector2 position)
     {
@@ -155,7 +215,38 @@ public class Moves : MonoBehaviour
     {
         List<Vector2> list = new List<Vector2>();
 
-        for (int i = -2; i < 3; i++)
+        for (int i = 1; i < 3; i++)
+        {
+            for (int j = 1; j < 3; j++)
+            {
+
+                if ( i == j)
+                {
+                    continue;
+                }
+
+                if (InLimit(new Vector2(pos.x + i, pos.y + j)))
+                {
+
+                    list.Add(new Vector2(pos.x + i, pos.y + j));
+                }if (InLimit(new Vector2(pos.x - i, pos.y - j)))
+                {
+
+                    list.Add(new Vector2(pos.x - i, pos.y - j));
+                }if (InLimit(new Vector2(pos.x + i, pos.y - j)))
+                {
+
+                    list.Add(new Vector2(pos.x + i, pos.y - j));
+                }if (InLimit(new Vector2(pos.x - i, pos.y + j)))
+                {
+
+                    list.Add(new Vector2(pos.x - i, pos.y + j));
+                }
+
+
+            }
+        }
+/*for (int i = -2; i < 3; i++)
         {
             for (int j = -2; j < 3; j++)
             {
@@ -174,7 +265,7 @@ public class Moves : MonoBehaviour
 
             }
         }
-
+*/
 
         return list;
     }

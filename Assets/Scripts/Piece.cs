@@ -15,6 +15,7 @@ public class Piece : MonoBehaviour
 
     BoardManager bM;
     Moves moves;
+    GameManager gm;
     //  for local functions
     Vector3 pos;
     Vector3 scale;
@@ -22,10 +23,12 @@ public class Piece : MonoBehaviour
     private void Awake()
     {
         moves = Moves._instance;
+        bM = BoardManager._instance;
     }
     private void Start()
     {
-        bM = BoardManager._instance;
+        gm = GameManager._instance;
+        
 
     }
     public void InitializeClass(string name, string color, Vector2 position)
@@ -83,12 +86,12 @@ public class Piece : MonoBehaviour
         else if (name.Contains(pieceName.WKing.ToString()))
         {
             piece = new Wking(color, position);
-
+            bM.wKing = piece;
         }
         else if (name.Contains(pieceName.BKing.ToString()))
         {
             piece = new Bking(color, position);
-
+            bM.bKing = piece;
         }
         piece.Moves = moves;
         piece.Name = name;
@@ -107,8 +110,18 @@ public class Piece : MonoBehaviour
                 print(piece.Name);
         */
         bM.Deselect();
-        piece.GetAllMoves();
-        bM.ValidatePossiblities(piece.Position);
+        if (gm.isFreeMode)
+        {
+            piece.GetAllMoves();
+            bM.ValidatePossiblities(piece.Position);
+        }
+        else if(gameObject.tag == gm.turn)
+        {
+            
+            piece.GetAllMoves();
+            bM.ValidatePossiblities(piece.Position);
+        }
+        
     }
     public void OnMouseOver()
     {
@@ -365,7 +378,6 @@ public class BBishop : IPiece
 
     public override void Validate()
     {
-
         GetPossibleMovesCount();
     }
 }

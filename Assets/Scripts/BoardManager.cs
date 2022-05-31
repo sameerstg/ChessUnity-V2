@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,16 +14,21 @@ public class BoardManager : MonoBehaviour
     Vector3 pos;
     GameObject dotParrent;
     GameObject dot;
+    GameManager gm;
+    Moves moves;
+    public IPiece bKing, wKing;
     private void Awake()
     {
         _instance = this;
     }
     private void Start()
     {
+        moves = Moves._instance;
+        gm = GameManager._instance;
         dot = dot = Resources.Load<GameObject>("Dot");
         dotParrent = transform.GetChild(2).gameObject;
         GenerateBoard();
-        
+
     }
 
 
@@ -175,7 +181,348 @@ public class BoardManager : MonoBehaviour
         }
 
     }
-    public void ValidatePossiblities( Vector2 pickup)
+    void Check()
+    {
+        if (gm.isFreeMode)
+        {
+            if (KingCheck(colorSide.White.ToString()))
+            {
+
+                gm.MakeCheck(colorSide.Black.ToString());
+                return;
+            }
+            else if (KingCheck(colorSide.Black.ToString()))
+            {
+
+                gm.MakeCheck(colorSide.White.ToString());
+                return;
+            }
+            
+
+        }
+        else if (gm.turn == colorSide.Black.ToString())
+        {
+            if (KingCheck(colorSide.Black.ToString()))
+            {
+                gm.MakeCheck(colorSide.White.ToString());
+                return;
+
+            }
+        }
+        else if (gm.turn == colorSide.White.ToString())
+        {
+            if (KingCheck(colorSide.White.ToString()))
+            {
+
+                gm.MakeCheck(colorSide.Black.ToString());
+                return;
+            }
+        }
+        gm.RemoveCheck();
+    }
+
+    bool KingCheck(string color)
+    {
+        Vector2 move;
+        GameObject go;
+        bool b1, b2, b3, b4, b5, b6, b7, b8;
+        b1 = b2 = b3 = b4 = b5 = b6 = b7 = b8 = true;
+        Tuple<bool, bool> a;
+        Tuple<bool, GameObject> k;
+
+        if (color == colorSide.Black.ToString())
+        {
+            pos = bKing.Position;
+
+            move = new Vector2(pos.x - 1, pos.y - 1);
+            if (moves.InLimit(move))
+            {
+                k = moves.GetValitdationForCheck(move, color);
+                if (k.Item1 && k.Item2.name.Contains("Pawn"))
+                {
+                    return true;
+                }
+            }move = new Vector2(pos.x + 1, pos.y - 1);
+            if (moves.InLimit(move))
+            {
+                k = moves.GetValitdationForCheck(move, color);
+                if (k.Item1 && k.Item2.name.Contains("Pawn"))
+                {
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            pos = wKing.Position;
+
+            move = new Vector2(pos.x - 1, pos.y + 1);
+            if (moves.InLimit(move))
+            {
+                k = moves.GetValitdationForCheck(move, color);
+                if (k.Item1 && k.Item2.name.Contains("Pawn"))
+                {
+                    return true;
+                }
+            }
+            move = new Vector2(pos.x + 1, pos.y + 1);
+            if (moves.InLimit(move))
+            {
+                k = moves.GetValitdationForCheck(move, color);
+                if (k.Item1 && k.Item2.name.Contains("Pawn"))
+                {
+                    return true;
+                }
+            }
+
+        }
+        for (int i = 1; i < 7; i++)
+        {
+            for (int j = 1; j < 7; j++)
+            {
+
+
+                if (b1)
+                {
+
+                    move = new Vector2(pos.x + i, pos.y + i);
+                    a = moves.GetSequenceValitdationForCheck(move, color);
+                    if (a.Item1)
+                    {
+                        go = moves.GetGoByVector2(move);
+                        if (moves.IsDiagonalTaker(go))
+                        {
+                            print(go.name);
+                            return true;
+                        }
+                        else
+                        {
+                            b1 = false;
+                        }
+                    }
+                    else if (!a.Item2)
+                    {
+                        b1 = false;
+                    }
+                }
+
+                if (b2)
+                {
+
+                    move = new Vector2(pos.x - i, pos.y - i);
+                    a = moves.GetSequenceValitdationForCheck(move, color);
+                    if (a.Item1)
+                    {
+                        go = moves.GetGoByVector2(move);
+                        if (moves.IsDiagonalTaker(go))
+                        {
+                            print(go.name);
+                            return true;
+                        }
+                        else
+                        {
+                            b2 = false;
+                        }
+                    }
+                    else if (!a.Item2)
+                    {
+                        b2 = false;
+                    }
+                }
+
+                if (b3)
+                {
+
+                    move = new Vector2(pos.x + i, pos.y - i);
+                    a = moves.GetSequenceValitdationForCheck(move, color);
+                    if (a.Item1)
+                    {
+                        go = moves.GetGoByVector2(move);
+                        if (moves.IsDiagonalTaker(go))
+                        {
+                            print(go.name);
+                            return true;
+                        }
+                        else
+                        {
+                            b3 = false;
+                        }
+                    }
+                    else if (!a.Item2)
+                    {
+                        b3 = false;
+                    }
+                }
+
+                if (b4)
+                {
+
+                    move = new Vector2(pos.x - i, pos.y + i);
+                    a = moves.GetSequenceValitdationForCheck(move, color);
+                    if (a.Item1)
+                    {
+                        go = moves.GetGoByVector2(move);
+                        if (moves.IsDiagonalTaker(go))
+                        {
+                            print(go.name);
+                            return true;
+                        }
+                        else
+                        {
+                            b4 = false;
+                        }
+                    }
+                    else if (!a.Item2)
+                    {
+                        b4 = false;
+                    }
+                }
+                if (b5)
+                {
+
+                    move = new Vector2(pos.x, pos.y + i);
+                    a = moves.GetSequenceValitdationForCheck(move, color);
+                    if (a.Item1)
+                    {
+                        go = moves.GetGoByVector2(move);
+                        if (moves.IsPlusTaker(go))
+                        {
+                            print(go.name);
+                            return true;
+                        }
+                        else
+                        {
+                            b5 = false;
+                        }
+                    }
+                    else if (!a.Item2)
+                    {
+                        b5 = false;
+                    }
+                }
+
+                if (b6)
+                {
+
+                    move = new Vector2(pos.x, pos.y - i);
+                    a = moves.GetSequenceValitdationForCheck(move, color);
+                    if (a.Item1)
+                    {
+                        go = moves.GetGoByVector2(move);
+                        if (moves.IsPlusTaker(go))
+                        {
+                            print(go.name);
+                            return true;
+                        }
+                        else
+                        {
+                            b6 = false;
+                        }
+                    }
+                    else if (!a.Item2)
+                    {
+                        b6 = false;
+                    }
+                }
+
+                if (b7)
+                {
+
+                    move = new Vector2(pos.x + i, pos.y);
+                    a = moves.GetSequenceValitdationForCheck(move, color);
+                    if (a.Item1)
+                    {
+                        go = moves.GetGoByVector2(move);
+                        if (moves.IsPlusTaker(go))
+                        {
+                            print(go.name);
+                            return true;
+                        }
+                        else
+                        {
+                            b7 = false;
+                        }
+                    }
+                    else if (!a.Item2)
+                    {
+                        b7 = false;
+                    }
+                }
+
+                if (b8)
+                {
+
+                    move = new Vector2(pos.x - i, pos.y);
+                    a = moves.GetSequenceValitdationForCheck(move, color);
+                    if (a.Item1)
+                    {
+                        go = moves.GetGoByVector2(move);
+                        if (moves.IsPlusTaker(go))
+                        {
+                            print(go.name);
+                            return true;
+                        }
+                        else
+                        {
+                            b8 = false;
+                        }
+                    }
+                    else if (!a.Item2)
+                    {
+                        b8 = false;
+                    }
+                }
+
+                if (i != j && i < 3 && j < 3)
+                {
+                    move = new Vector2(pos.x + i, pos.y + j);
+                    if (moves.InLimit(move))
+                    {
+                        k = moves.GetValitdationForCheck(move, color);
+                        if (k.Item1 && k.Item2.name.Contains("Knight"))
+                        {
+                            return true;
+                        }
+                    }
+                    move = new Vector2(pos.x - i, pos.y - j);
+                    if (moves.InLimit(move))
+                    {
+                        k = moves.GetValitdationForCheck(move, color);
+                        if (k.Item1 && k.Item2.name.Contains("Knight"))
+                        {
+                            return true;
+                        }
+                    }
+                    move = new Vector2(pos.x + i, pos.y - j);
+                    if (moves.InLimit(move))
+                    {
+                        k = moves.GetValitdationForCheck(move, color);
+                        if (k.Item1 && k.Item2.name.Contains("Knight"))
+                        {
+                            return true;
+                        }
+                    }
+                    move = new Vector2(pos.x - i, pos.y + j);
+                    if (moves.InLimit(move))
+                    {
+                        k = moves.GetValitdationForCheck(move, color);
+                        if (k.Item1 && k.Item2.name.Contains("Knight"))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                
+                
+
+
+            }
+        }
+
+        return false;
+
+    }
+    public void ValidatePossiblities(Vector2 pickup)
     {
         ShowMoves(pickup);
     }
@@ -183,12 +530,12 @@ public class BoardManager : MonoBehaviour
     {
         foreach (var p in grid.possiblities.Possiblities)
         {
-            
-           
-                if (grid.py[(int)p.y].x[(int)p.x]!= null && grid.py[(int)p.y].x[(int)p.x].tag == grid.py[(int)pickup.y].x[(int)pickup.x].tag)
-                {
+
+
+            if (grid.py[(int)p.y].x[(int)p.x] != null && grid.py[(int)p.y].x[(int)p.x].tag == grid.py[(int)pickup.y].x[(int)pickup.x].tag)
+            {
                 continue;
-                }
+            }
             GameObject nDot = Instantiate(dot, grid.y[(int)p.y].x[(int)p.x].transform.position, Quaternion.identity);
             pos = nDot.transform.position;
             pos.z -= 3;
@@ -215,7 +562,7 @@ public class BoardManager : MonoBehaviour
         if (grid.py[(int)drop.y].x[(int)drop.x] != null)
         {
             grid.py[(int)drop.y].x[(int)drop.x].SetActive(false);
-            grid.py[(int)drop.y].x[(int)drop.x]= null;
+            grid.py[(int)drop.y].x[(int)drop.x] = null;
         }
 
         grid.py[(int)drop.y].x[(int)drop.x] = piece;
@@ -227,8 +574,9 @@ public class BoardManager : MonoBehaviour
         grid.py[(int)drop.y].x[(int)drop.x].transform.position = posToBe;
 
         piece.GetComponent<Piece>().piece.Move(drop);
-
+        gm.SwitchSide();
         Deselect();
+        Check();
     }
 }
 
