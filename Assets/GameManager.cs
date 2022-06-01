@@ -22,6 +22,13 @@ public class GameManager : MonoBehaviour
         seColor = Color.red;
         turn = colorSide.White.ToString();
     }
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            SwitchFreeMode();
+        }
+    }
     public void SwitchSide()
     {
         if (turn == colorSide.White.ToString())
@@ -31,6 +38,16 @@ public class GameManager : MonoBehaviour
         else
         {
             turn = colorSide.White.ToString();
+        }
+    }public void SwitchFreeMode()
+    {
+        if (isFreeMode)
+        {
+            isFreeMode = false;
+        }
+        else
+        {
+            isFreeMode = true;
         }
     }
     public void MakeCheck(string color)

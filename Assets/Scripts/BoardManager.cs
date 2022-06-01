@@ -16,6 +16,7 @@ public class BoardManager : MonoBehaviour
     GameObject dot;
     GameManager gm;
     Moves moves;
+    public GridX[] temp;
     public IPiece bKing, wKing;
     private void Awake()
     {
@@ -197,7 +198,7 @@ public class BoardManager : MonoBehaviour
                 gm.MakeCheck(colorSide.White.ToString());
                 return;
             }
-            
+
 
         }
         else if (gm.turn == colorSide.Black.ToString())
@@ -238,15 +239,16 @@ public class BoardManager : MonoBehaviour
             if (moves.InLimit(move))
             {
                 k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("Pawn"))
+                if (k.Item1 && k.Item2.name.Contains("Pawn") || k.Item1 && k.Item2.name.Contains("King"))
                 {
                     return true;
                 }
-            }move = new Vector2(pos.x + 1, pos.y - 1);
+            }
+            move = new Vector2(pos.x + 1, pos.y - 1);
             if (moves.InLimit(move))
             {
                 k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("Pawn"))
+                if (k.Item1 && k.Item2.name.Contains("Pawn") || k.Item1 && k.Item2.name.Contains("King"))
                 {
                     return true;
                 }
@@ -260,7 +262,7 @@ public class BoardManager : MonoBehaviour
             if (moves.InLimit(move))
             {
                 k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("Pawn"))
+                if (k.Item1 && k.Item2.name.Contains("Pawn") || k.Item1 && k.Item2.name.Contains("King"))
                 {
                     return true;
                 }
@@ -269,7 +271,42 @@ public class BoardManager : MonoBehaviour
             if (moves.InLimit(move))
             {
                 k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("Pawn"))
+                if (k.Item1 && k.Item2.name.Contains("Pawn") || k.Item1 && k.Item2.name.Contains("King"))
+                {
+                    return true;
+                }
+            }
+            move = new Vector2(pos.x + 1, pos.y);
+            if (moves.InLimit(move))
+            {
+                k = moves.GetValitdationForCheck(move, color);
+                if (k.Item1 && k.Item2.name.Contains("King"))
+                {
+                    return true;
+                }
+            }
+            move = new Vector2(pos.x - 1, pos.y);
+            if (moves.InLimit(move))
+            {
+                k = moves.GetValitdationForCheck(move, color);
+                if (k.Item1 && k.Item2.name.Contains("King"))
+                {
+                    return true;
+                }
+            } move = new Vector2(pos.x, pos.y+1);
+            if (moves.InLimit(move))
+            {
+                k = moves.GetValitdationForCheck(move, color);
+                if (k.Item1 && k.Item2.name.Contains("King"))
+                {
+                    return true;
+                }
+            }
+            move = new Vector2(pos.y, pos.y-1);
+            if (moves.InLimit(move))
+            {
+                k = moves.GetValitdationForCheck(move, color);
+                if (k.Item1 && k.Item2.name.Contains("King"))
                 {
                     return true;
                 }
@@ -292,7 +329,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsDiagonalTaker(go))
                         {
-                            print(go.name);
+                            
                             return true;
                         }
                         else
@@ -316,7 +353,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsDiagonalTaker(go))
                         {
-                            print(go.name);
+                           
                             return true;
                         }
                         else
@@ -340,7 +377,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsDiagonalTaker(go))
                         {
-                            print(go.name);
+                            
                             return true;
                         }
                         else
@@ -364,7 +401,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsDiagonalTaker(go))
                         {
-                            print(go.name);
+                           
                             return true;
                         }
                         else
@@ -387,7 +424,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsPlusTaker(go))
                         {
-                            print(go.name);
+                           
                             return true;
                         }
                         else
@@ -512,8 +549,8 @@ public class BoardManager : MonoBehaviour
                         }
                     }
                 }
-                
-                
+
+
 
 
             }
@@ -524,18 +561,69 @@ public class BoardManager : MonoBehaviour
     }
     public void ValidatePossiblities(Vector2 pickup)
     {
+        
+        List<Vector2> toDelete = new List<Vector2>();
+        GameObject piece = grid.py[(int)pickup.y].x[(int)pickup.x];
+        GameObject takePiece;
+/*        print(piece.name);
+*/        Vector2 p;
+        bool ifCheckedBefore = gm.check;
+        string checkBy = gm.checkBy;
+        gm.check = false;
+        for (int i = 0; i < grid.possiblities.Possiblities.Count; i++)
+        {
+            p =  grid.possiblities.Possiblities[i];
+            takePiece = null;
+            if (grid.py[(int)p.y].x[(int)p.x]!=null)
+            {
+                takePiece = grid.py[(int)p.y].x[(int)p.x];
+            }
+
+            if (grid.py[(int)p.y].x[(int)p.x] != null && grid.py[(int)p.y].x[(int)p.x].tag == grid.py[(int)pickup.y].x[(int)pickup.x].tag ||
+                grid.py[(int)p.y].x[(int)p.x] != null && grid.py[(int)p.y].x[(int)p.x].name.Contains("King") )
+            {
+                toDelete.Add(p);
+                /*grid.py = null;
+                grid.py = temp;*/
+                continue;
+            }
+            
+            grid.py[(int)p.y].x[(int)p.x] = null;
+            grid.py[(int)pickup.y].x[(int)pickup.x] = null;
+            grid.py[(int)p.y].x[(int)p.x] = piece;
+
+
+            if (KingCheck(piece.tag))
+            {
+                print("destroyed dot");
+                toDelete.Add(p);
+            }
+            /*            gm.RemoveCheck();*/
+
+            /* grid.py = null;
+             grid.py = temp;*/
+            grid.py[(int)pickup.y].x[(int)pickup.x] = piece;
+            grid.py[(int)p.y].x[(int)p.x] = takePiece;
+
+        }
+        if (ifCheckedBefore)
+        {
+            gm.check = true;
+            gm.checkBy = checkBy;
+        }
+        foreach (var item in toDelete)
+        {
+            grid.possiblities.Possiblities.Remove(item);
+
+        }
         ShowMoves(pickup);
     }
     void ShowMoves(Vector2 pickup)
     {
-        foreach (var p in grid.possiblities.Possiblities)
+        foreach (Vector2 p in grid.possiblities.Possiblities)
         {
 
 
-            if (grid.py[(int)p.y].x[(int)p.x] != null && grid.py[(int)p.y].x[(int)p.x].tag == grid.py[(int)pickup.y].x[(int)pickup.x].tag)
-            {
-                continue;
-            }
             GameObject nDot = Instantiate(dot, grid.y[(int)p.y].x[(int)p.x].transform.position, Quaternion.identity);
             pos = nDot.transform.position;
             pos.z -= 3;

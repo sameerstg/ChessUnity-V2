@@ -101,6 +101,8 @@ public class Moves : MonoBehaviour
             GameObject go = GetGoByVector2(pos);
             if (go != null && go.tag !=color)
             {
+                
+
                 return new Tuple<bool, GameObject>(true, go);
             }
         }
