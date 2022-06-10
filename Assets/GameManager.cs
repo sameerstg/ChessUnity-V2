@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     public string checkBy;
     Camera mCamera;
     Color prColor, seColor;
+    BoardManager bm;
     private void Awake()
     {
         _instance = this;
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour
     }
     private void Start()
     {
+        bm = BoardManager._instance;
         prColor = mCamera.backgroundColor;
         seColor = Color.red;
         turn = colorSide.White.ToString();
@@ -55,6 +57,7 @@ public class GameManager : MonoBehaviour
         check = true;
         checkBy = color;
         mCamera.backgroundColor = seColor;
+        bm.CheckmateCheck();
     }
     public void RemoveCheck()
     {

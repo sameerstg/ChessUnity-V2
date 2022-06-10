@@ -8,7 +8,6 @@ using static Enums;
 public class BoardManager : MonoBehaviour
 {
     public static BoardManager _instance;
-
     public Grid grid;
     public List<GameObject> blackPiecePrefab, whitePiecePrefab;
     Vector3 pos;
@@ -16,11 +15,16 @@ public class BoardManager : MonoBehaviour
     GameObject dot;
     GameManager gm;
     Moves moves;
+    public Last last;
+    public SecondLast secondLast;
     public GridX[] temp;
     public IPiece bKing, wKing;
+    Transform pieceParrent;
     private void Awake()
     {
         _instance = this;
+        last = new Last();
+        secondLast = new SecondLast();
     }
     private void Start()
     {
@@ -31,8 +35,6 @@ public class BoardManager : MonoBehaviour
         GenerateBoard();
 
     }
-
-
     public void GenerateBoard()
     {
         grid = new Grid();
@@ -79,7 +81,7 @@ public class BoardManager : MonoBehaviour
         tileParrent.transform.parent = transform;
         // Setting Pieces
         // Setting White Pieces
-        Transform pieceParrent = transform.GetChild(0);
+        pieceParrent = transform.GetChild(0);
         for (int i = 0; i < 8; i++)
         {
             grid.py[0].x[i] = Instantiate(whitePiecePrefab[i], grid.y[0].x[i].transform.position, Quaternion.identity);
@@ -148,7 +150,23 @@ public class BoardManager : MonoBehaviour
         /*FlipBoard();*/
         FlipPieces();
     }
-
+    public void ResetBoard()
+    {
+        foreach (var item in grid.allDots)
+        {
+            Destroy(item);
+        }
+        foreach (var item in grid.allPiecesObj)
+        {
+            Destroy(item);
+        }foreach (var item in grid.allTiles)
+        {
+            Destroy(item);
+        }
+        transform.GetChild(2).transform.SetSiblingIndex(0);
+        gm.turn = "White";
+        GenerateBoard();
+    }
     public void FlipBoard()
     {
         if (transform.localRotation.z == 1)
@@ -221,7 +239,6 @@ public class BoardManager : MonoBehaviour
         }
         gm.RemoveCheck();
     }
-
     bool KingCheck(string color)
     {
         Vector2 move;
@@ -559,43 +576,42 @@ public class BoardManager : MonoBehaviour
         return false;
 
     }
-    public void ValidatePossiblities(Vector2 pickup)
+    void ValidateDots(Vector2 pickup)
     {
-        
         List<Vector2> toDelete = new List<Vector2>();
         GameObject piece = grid.py[(int)pickup.y].x[(int)pickup.x];
         GameObject takePiece;
-/*        print(piece.name);
-*/        Vector2 p;
+        Vector2 p;
         bool ifCheckedBefore = gm.check;
         string checkBy = gm.checkBy;
         gm.check = false;
         for (int i = 0; i < grid.possiblities.Possiblities.Count; i++)
         {
-            p =  grid.possiblities.Possiblities[i];
             takePiece = null;
-            if (grid.py[(int)p.y].x[(int)p.x]!=null)
+            p = grid.possiblities.Possiblities[i];
+            if (grid.py[(int)p.y].x[(int)p.x] != null)
             {
                 takePiece = grid.py[(int)p.y].x[(int)p.x];
             }
 
-            if (grid.py[(int)p.y].x[(int)p.x] != null && grid.py[(int)p.y].x[(int)p.x].tag == grid.py[(int)pickup.y].x[(int)pickup.x].tag ||
-                grid.py[(int)p.y].x[(int)p.x] != null && grid.py[(int)p.y].x[(int)p.x].name.Contains("King") )
+            if (/*same piece check*/grid.py[(int)p.y].x[(int)p.x] != null && 
+                grid.py[(int)p.y].x[(int)p.x].tag == grid.py[(int)pickup.y].x[(int)pickup.x].tag ||
+               /*if drop is king*/ grid.py[(int)p.y].x[(int)p.x] != null && 
+               grid.py[(int)p.y].x[(int)p.x].name.Contains("King"))
             {
                 toDelete.Add(p);
-                /*grid.py = null;
-                grid.py = temp;*/
                 continue;
             }
-            
+
             grid.py[(int)p.y].x[(int)p.x] = null;
             grid.py[(int)pickup.y].x[(int)pickup.x] = null;
             grid.py[(int)p.y].x[(int)p.x] = piece;
+            print(KingCheck(piece.tag));
+            print(piece.name);
 
 
             if (KingCheck(piece.tag))
             {
-                print("destroyed dot");
                 toDelete.Add(p);
             }
             /*            gm.RemoveCheck();*/
@@ -616,6 +632,10 @@ public class BoardManager : MonoBehaviour
             grid.possiblities.Possiblities.Remove(item);
 
         }
+    }
+    public void ValidatePossiblities(Vector2 pickup)
+    {
+        ValidateDots(pickup);
         ShowMoves(pickup);
     }
     void ShowMoves(Vector2 pickup)
@@ -643,8 +663,25 @@ public class BoardManager : MonoBehaviour
     }
     public void Move(Vector2 pick, Vector2 drop)
     {
+        secondLast.LastSelectedGo = last.LastSelectedGo;
+        secondLast.LastSelectedGoPos = last.LastSelectedGoPos;
+        if (moves.GetGoByVector2(pick).name == pieceName.WPawn.ToString()
+            && moves.GetGoByVector2(drop) == null
+            && pick.x != drop.x)
+        {
+            grid.py[(int)drop.y - 1].x[(int)drop.x].SetActive(false);
+            grid.py[(int)drop.y - 1].x[(int)drop.x] = null;
+        }
+        else if (moves.GetGoByVector2(pick).name == pieceName.BPawn.ToString()
+            && moves.GetGoByVector2(drop) == null
+            && pick.x != drop.x)
+        {
+            grid.py[(int)drop.y + 1].x[(int)drop.x].SetActive(false);
+            grid.py[(int)drop.y + 1].x[(int)drop.x] = null;
+        }
 
         GameObject piece = grid.py[(int)pick.y].x[(int)pick.x];
+
         grid.py[(int)pick.y].x[(int)pick.x] = null;
 
         if (grid.py[(int)drop.y].x[(int)drop.x] != null)
@@ -652,7 +689,8 @@ public class BoardManager : MonoBehaviour
             grid.py[(int)drop.y].x[(int)drop.x].SetActive(false);
             grid.py[(int)drop.y].x[(int)drop.x] = null;
         }
-
+        
+        
         grid.py[(int)drop.y].x[(int)drop.x] = piece;
 
         Vector3 posToBe;
@@ -662,14 +700,203 @@ public class BoardManager : MonoBehaviour
         grid.py[(int)drop.y].x[(int)drop.x].transform.position = posToBe;
 
         piece.GetComponent<Piece>().piece.Move(drop);
+        last.LastSelectedGo = grid.py[(int)drop.y].x[(int)drop.x];
+        last.LastSelectedGoPos = drop;
+        if (moves.GetGoByVector2(drop).name.Contains("Pawn"))
+        {
+            if (PromotionCheck())
+            {
+                PromotionInstantiation();
+            }
+        }
+        else if (moves.GetGoByVector2(drop).name.Contains("King"))
+        {
+            if (pick.x-drop.x==2)
+            {
+                 piece = grid.py[(int)pick.y].x[0];
+                grid.py[(int)pick.y].x[0] = null;
+                grid.py[(int)drop.y].x[(int)drop.x+1] = piece;
+
+                
+                posToBe.x = grid.y[(int)drop.y].x[(int)drop.x+1].transform.position.x;
+                posToBe.y = grid.y[(int)drop.y].x[(int)drop.x+1].transform.position.y;
+                posToBe.z = piece.transform.position.z;
+                grid.py[(int)drop.y].x[(int)drop.x+1].transform.position = posToBe;
+
+                piece.GetComponent<Piece>().piece.Move(drop);
+            }
+            else if(pick.x - drop.x == -2)
+            {
+                piece = grid.py[(int)pick.y].x[7];
+                grid.py[(int)pick.y].x[7] = null;
+                grid.py[(int)drop.y].x[(int)drop.x - 1] = piece;
+                posToBe.x = grid.y[(int)drop.y].x[(int)drop.x - 1].transform.position.x;
+                posToBe.y = grid.y[(int)drop.y].x[(int)drop.x - 1].transform.position.y;
+                posToBe.z = piece.transform.position.z;
+                grid.py[(int)drop.y].x[(int)drop.x - 1].transform.position = posToBe;
+            }
+        }
         gm.SwitchSide();
         Deselect();
         Check();
     }
+    public void CheckmateCheck()
+    {
+        if (gm.check)
+        {
+            if (gm.checkBy == Enums.colorSide.White.ToString())
+            {
+                foreach (var piece in grid.allPiecesObj)
+                {
+                    if (piece.CompareTag( Enums.colorSide.Black.ToString()))
+                    {
+                        var pieceScript =  piece.GetComponent<Piece>().piece;
+                        pieceScript.GetAllMoves();
+                        
+                        if (pieceScript.PossibleMovesCount>0)
+                        {
+                            Deselect();
+                            return;
+                        }
+                        Deselect();
+                    }
+                }
+            }
+            else
+            {
+                foreach (var piece in grid.allPiecesObj)
+                {
+                    if (piece.CompareTag(Enums.colorSide.White.ToString()))
+                    {
+                        var pieceScript = piece.GetComponent<Piece>().piece;
+                        pieceScript.GetAllMoves();
+                        if (pieceScript.PossibleMovesCount > 0)
+                        {
+                            Deselect();
+                            return;
+                        }
+                        Deselect();
+                    }
+                }
+            }
+        }
+        print("checkmate");
+    }
+    bool PromotionCheck()
+    {
+        if (last.LastSelectedGo.name.Contains("Pawn"))
+        {
+            if (last.LastSelectedGoPos.y == 7 || last.LastSelectedGoPos.y == 0)
+            {
+                print("promotion time");
+                return true;
+            }
+        }
+        return false;
+    }
+    void PromotionInstantiation()
+    {
+        print(last.LastSelectedGoPos);
+        if (last.LastSelectedGo.name.StartsWith("W"))
+        {
+            GameObject obj =  Instantiate(Resources.Load<GameObject>("Pieces/WPromotion"));
+            obj.transform.parent = pieceParrent.transform;
+            Vector3 pos = last.LastSelectedGo.transform.position;
+            pos.y += 1f;
+            pos.x = 0;
+            obj.transform.position = pos;
+        }
+        else
+        {
+            GameObject obj = Instantiate(Resources.Load<GameObject>("Pieces/BPromotion"));
+            obj.transform.parent = pieceParrent.transform;
+            obj.transform.position = last.LastSelectedGo.transform.position;
+            pos.y += 1f;
+            pos.x = 0;
+            obj.transform.position = pos;
+
+        }
+
+    }
+
+    public void Promote(string pieceName)
+    {
+        grid.allPiecesObj.Remove(last.LastSelectedGo);
+        Destroy(last.LastSelectedGo);
+        if (pieceName.StartsWith("W"))
+        {
+            
+            foreach (var item in whitePiecePrefab)
+            {
+                if (item.name == pieceName)
+                {
+
+                   
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x] = null;
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x] = Instantiate(item, grid.y[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.position, Quaternion.identity);
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.localScale = grid.y[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.localScale;
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.parent = pieceParrent;
+                    grid.allPiecesObj.Add(grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x]);
+
+
+                    string name = grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].name;
+                    name = name.Replace("(Clone)", "");
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].name = name.Replace(" ", "");
+
+                    pos = grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.position;
+                    pos.z -= 2;
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.position = pos;
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.Rotate(0, 0, 180);
+
+                    if (grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].name.StartsWith("B"))
+                    {
+                        grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].GetComponent<Piece>().InitializeClass(name, colorSide.Black.ToString(), new Vector2((int)last.LastSelectedGoPos.x, (int)last.LastSelectedGoPos.y));
+                    }
+                    else
+                    {
+
+                        grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].GetComponent<Piece>().InitializeClass(name, colorSide.White.ToString(), new Vector2((int)last.LastSelectedGoPos.x, (int)last.LastSelectedGoPos.y));
+
+                    }
+                }
+            }
+        }
+        else
+        {
+            foreach (var item in blackPiecePrefab)
+            {
+                if (item.name == pieceName)
+                {
+                    
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x] = null;
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x] = Instantiate(item, grid.y[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.position, Quaternion.identity);
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.localScale = grid.y[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.localScale;
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.parent = pieceParrent;
+                    grid.allPiecesObj.Add(grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x]);
+
+                    string name = grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].name;
+                    name = name.Replace("(Clone)", "");
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].name = name.Replace(" ", "");
+
+                    pos = grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.position;
+                    pos.z -= 2;
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.position = pos;
+                    grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].transform.Rotate(0, 0, 180);
+                    if (grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].name.StartsWith("B"))
+                    {
+                        grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].GetComponent<Piece>().InitializeClass(name, colorSide.Black.ToString(), new Vector2((int)last.LastSelectedGoPos.x, (int)last.LastSelectedGoPos.y));
+                    }
+                    else
+                    {
+
+                        grid.py[(int)last.LastSelectedGoPos.y].x[(int)last.LastSelectedGoPos.x].GetComponent<Piece>().InitializeClass(name, colorSide.White.ToString(), new Vector2((int)last.LastSelectedGoPos.x, (int)last.LastSelectedGoPos.y));
+
+                    }
+                }
+            }
+        }
+    }
 }
-
-
-
 [System.Serializable]
 public class GridX
 {
@@ -715,11 +942,35 @@ public class Grid
 public class Possiblity
 {
     List<Vector2> possiblities;
-
     public Possiblity()
     {
         Possiblities = new List<Vector2>();
     }
-
     public List<Vector2> Possiblities { get => possiblities; set => possiblities = value; }
+}
+[System.Serializable]
+public class Last
+{
+    GameObject lastSelectedGo;
+    Vector2 lastSelectedGoPos;
+
+    public Last()
+    {
+    }
+
+    public GameObject LastSelectedGo { get => lastSelectedGo; set => lastSelectedGo = value; }
+    public Vector2 LastSelectedGoPos { get => lastSelectedGoPos; set => lastSelectedGoPos = value; }
+}
+[System.Serializable]
+public class SecondLast
+{
+    GameObject lastSelectedGo;
+    Vector2 lastSelectedGoPos;
+
+    public SecondLast()
+    {
+    }
+
+    public GameObject LastSelectedGo { get => lastSelectedGo; set => lastSelectedGo = value; }
+    public Vector2 LastSelectedGoPos { get => lastSelectedGoPos; set => lastSelectedGoPos = value; }
 }

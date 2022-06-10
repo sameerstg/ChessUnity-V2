@@ -12,6 +12,7 @@ public class Piece : MonoBehaviour
     public bool isMovedBefore;
     public Possiblity possibleMoves;
     public Vector2 position;
+    public int movesCount;
 
     BoardManager bM;
     Moves moves;
@@ -121,7 +122,9 @@ public class Piece : MonoBehaviour
             piece.GetAllMoves();
             bM.ValidatePossiblities(piece.Position);
         }
-        
+
+
+
     }
     public void OnMouseOver()
     {
@@ -196,6 +199,10 @@ public class WPawn : IPiece
         if (Moves.InLimit(move)&& go != null && go.tag != Color)
         {
             PossibleMoves.Possiblities.Add(move);
+        } move = Moves.Enpassant(Position);
+        if (Moves.InLimit(move))
+        {
+            PossibleMoves.Possiblities.Add(move);
         }
 
 
@@ -256,6 +263,11 @@ public class BPawn : IPiece
         move = Moves.DownL1(Position);
         go = Moves.GetGoByVector2(move);
         if (Moves.InLimit(move)&& go != null && go.tag != Color)
+        {
+            PossibleMoves.Possiblities.Add(move);
+        }
+        move = Moves.Enpassant(Position);
+        if (Moves.InLimit(move))
         {
             PossibleMoves.Possiblities.Add(move);
         }
@@ -636,7 +648,11 @@ public class Wking : IPiece
                 PossibleMoves.Possiblities.Add(move);
             }
         }
+        if (!IsMovedBefore)
+        {
 
+            PossibleMoves.Possiblities.AddRange(Moves.Castling(Position, Color));
+        }
         BoardManager._instance.grid.possiblities = PossibleMoves;
         Validate();
     }
@@ -775,7 +791,11 @@ public class Bking : IPiece
                 PossibleMoves.Possiblities.Add(move);
             }
         }
+        if (!IsMovedBefore)
+        {
 
+            PossibleMoves.Possiblities.AddRange(Moves.Castling(Position, Color));
+        }
         BoardManager._instance.grid.possiblities = PossibleMoves;
         Validate();
     }
@@ -807,6 +827,7 @@ public abstract class IPiece
     Vector2 position;
     Transform transform;
     Moves moves;
+    int movesCount;
     public int PossibleMovesCount { get => possibleMovesCount; set => possibleMovesCount = value; }
     public bool IsMovedBefore { get => isMovedBefore; set => isMovedBefore = value; }
     public Possiblity PossibleMoves { get => possibleMoves; set => possibleMoves = value; }
@@ -815,12 +836,14 @@ public abstract class IPiece
     public string Color { get => color; set => color = value; }
     public Transform Transform { get => transform; set => transform = value; }
     public Moves Moves { get => moves; set => moves = value; }
+    public int MovesCount { get => movesCount; set => movesCount = value; }
 
     public abstract void GetAllMoves();
     public abstract void GetPossibleMovesCount();
     public virtual void Move(Vector2 pos)
     {
         IsMovedBefore = true;
+        MovesCount += 1;
         Position = pos;
     }
 

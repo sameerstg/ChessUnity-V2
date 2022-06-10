@@ -109,6 +109,7 @@ public class Moves : MonoBehaviour
         return new Tuple<bool, GameObject>(false, null);
 
     }
+    
     public GameObject GetGoByVector2(Vector2 position)
     {
         try
@@ -120,6 +121,41 @@ public class Moves : MonoBehaviour
             return null;
         }
            
+    }
+    public Vector2 Enpassant(Vector2 pos)
+    {
+        
+        if (GetGoByVector2(pos).CompareTag("White") && pos.y ==4)
+        {
+            
+            if (GetGoByVector2(new Vector2(pos.x - 1, pos.y)) != null && GetGoByVector2(new Vector2(pos.x - 1, pos.y)).name == Enums.pieceName.BPawn.ToString()
+                && GetGoByVector2(new Vector2(pos.x - 1, pos.y)).GetComponent<Piece>().piece.MovesCount ==1
+                && bm.last.LastSelectedGo == GetGoByVector2(new Vector2(pos.x - 1, pos.y)))
+            {
+                return UpL1(pos);
+            }
+            if (GetGoByVector2(new Vector2(pos.x + 1, pos.y))!= null && GetGoByVector2(new Vector2(pos.x + 1, pos.y)).name == Enums.pieceName.BPawn.ToString()
+                && GetGoByVector2(new Vector2(pos.x + 1, pos.y)).GetComponent<Piece>().piece.MovesCount ==1
+                &&  bm.last.LastSelectedGo == GetGoByVector2(new Vector2(pos.x + 1, pos.y)))
+            {
+                return UpR1(pos);
+            }
+        }else if (GetGoByVector2(pos).CompareTag("Black") && pos.y ==3)
+        {
+            if (GetGoByVector2(new Vector2(pos.x - 1, pos.y)) != null && GetGoByVector2(new Vector2(pos.x - 1, pos.y)).name == Enums.pieceName.WPawn.ToString()
+                && GetGoByVector2(new Vector2(pos.x - 1, pos.y)).GetComponent<Piece>().piece.MovesCount ==1
+                && bm.last.LastSelectedGo == GetGoByVector2(new Vector2(pos.x - 1, pos.y)))
+            {
+                return DownL1(pos);
+            }
+            if (GetGoByVector2(new Vector2(pos.x + 1, pos.y))!= null && GetGoByVector2(new Vector2(pos.x + 1, pos.y)).name == Enums.pieceName.WPawn.ToString()
+                && GetGoByVector2(new Vector2(pos.x + 1, pos.y)).GetComponent<Piece>().piece.MovesCount ==1
+                &&  bm.last.LastSelectedGo == GetGoByVector2(new Vector2(pos.x + 1, pos.y)))
+            {
+                return DownR1(pos);
+            }
+        }
+        return new Vector2(-1, -1);
     }
     public Vector2 Up1(Vector2 pos)
     {
@@ -248,27 +284,78 @@ public class Moves : MonoBehaviour
 
             }
         }
-/*for (int i = -2; i < 3; i++)
+        return list;
+    }
+    public List<Vector2> Castling(Vector2 pos,string color)
+    {
+        List<Vector2> list = new List<Vector2>();
+        if (color == Enums.colorSide.White.ToString())
         {
-            for (int j = -2; j < 3; j++)
+            for (int i = (int)pos.x + 1; i <= 7; i++)
             {
-
-                if (i == 0 || j == 0 || Math.Abs(i) == Math.Abs(j))
+                if (GetGoByVector2(new Vector2(i, pos.y)) == null)
                 {
                     continue;
                 }
-
-                if (InLimit(new Vector2(pos.x + i, pos.y + j)))
+                else if (GetGoByVector2(new Vector2(i, pos.y)).name.Contains("WRook") && !GetGoByVector2(new Vector2(i, pos.y)).GetComponent<Piece>().isMovedBefore)
                 {
-
-                    list.Add(new Vector2(pos.x + i, pos.y + j));
+                    list.Add(new Vector2(pos.x + 2, pos.y));
                 }
-
-
+                else
+                {
+                    break;
+                }
+            }
+            for (int i = (int)pos.x - 1; i >= 0; i--)
+            {
+                if (GetGoByVector2(new Vector2(i, pos.y)) == null)
+                {
+                    continue;
+                }
+                else if (GetGoByVector2(new Vector2(i, pos.y)).name.Contains("WRook") && !GetGoByVector2(new Vector2(i, pos.y)).GetComponent<Piece>().isMovedBefore)
+                {
+                    list.Add(new Vector2(pos.x - 2, pos.y));
+                }
+                else
+                {
+                    break;
+                }
             }
         }
-*/
-
+        else
+        {
+            for (int i = (int)pos.x + 1; i <= 7; i++)
+            {
+                if (GetGoByVector2(new Vector2(i, pos.y)) == null)
+                {
+                    continue;
+                }
+                else if (GetGoByVector2(new Vector2(i, pos.y)).name.Contains("BRook") && !GetGoByVector2(new Vector2(i, pos.y)).GetComponent<Piece>().isMovedBefore)
+                {
+                    list.Add(new Vector2(pos.x + 2, pos.y));
+                }
+                else
+                {
+                    break;
+                }
+            }
+            for (int i = (int)pos.x - 1; i >= 0; i--)
+            {
+                if (GetGoByVector2(new Vector2(i, pos.y)) == null)
+                {
+                    continue;
+                }
+                else if (GetGoByVector2(new Vector2(i, pos.y)).name.Contains("BRook") && !GetGoByVector2(new Vector2(i, pos.y)).GetComponent<Piece>().isMovedBefore)
+                {
+                    list.Add(new Vector2(pos.x - 2, pos.y));
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+        
         return list;
     }
     public List<Vector2> Diagonal(Vector2 pos, string color)
