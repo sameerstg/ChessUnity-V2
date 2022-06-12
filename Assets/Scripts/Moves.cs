@@ -143,7 +143,6 @@ public class Moves : MonoBehaviour
     }
     public Vector2 Enpassant(Vector2 pos)
     {
-        
         if (GetGoByVector2(pos).CompareTag("White") && pos.y ==4)
         {
             

@@ -16,18 +16,17 @@ public class BoardManager : MonoBehaviour
     GameManager gm;
     Moves moves;
     public Last last;
-    public SecondLast secondLast;
     public GridX[] temp;
     Transform pieceParrent;
     int totalMovesCount;
     string checkBy;
     TextMeshProUGUI movesCountText;
     public Grid grid;
+    public List<History> history= new List<History>();
     private void Awake()
     {
         _instance = this;
         last = new Last();
-        secondLast = new SecondLast();
         movesCountText = GameObject.FindGameObjectWithTag("EditorOnly").GetComponent<TextMeshProUGUI>();
     }
     private void Start()
@@ -50,6 +49,7 @@ public class BoardManager : MonoBehaviour
             GoMove(1);
         }
     }
+    
     public void GenerateBoard()
     {
         grid = new Grid();
@@ -163,7 +163,7 @@ public class BoardManager : MonoBehaviour
             }
         }
         SaveMove();
-        movesCountText.text = $"{totalMovesCount} || {grid.history.Count}";
+        movesCountText.text = $"{totalMovesCount} || {history.Count}";
 
         /*FlipBoard();*/
         FlipPieces();
@@ -187,7 +187,7 @@ public class BoardManager : MonoBehaviour
         GenerateBoard();
         Check();
         totalMovesCount = 0;
-        movesCountText.text = $"{totalMovesCount} || {grid.history.Count}";
+        movesCountText.text = $"{totalMovesCount} || {history.Count}";
 
 
     }
@@ -307,7 +307,7 @@ public class BoardManager : MonoBehaviour
             if (moves.InLimit(move))
             {
                 k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("WPawn") || k.Item1 && k.Item2.name.Contains("King"))
+                if (k.Item1 && k.Item2.name.Contains("BPawn") || k.Item1 && k.Item2.name.Contains("King"))
                 {
                     checkBy = k.Item2.name;
 
@@ -318,14 +318,14 @@ public class BoardManager : MonoBehaviour
             if (moves.InLimit(move))
             {
                 k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("WPawn") || k.Item1 && k.Item2.name.Contains("King"))
+                if (k.Item1 && k.Item2.name.Contains("BPawn") || k.Item1 && k.Item2.name.Contains("King"))
                 {
                     checkBy = k.Item2.name;
 
                     return true;
                 }
             }
-            
+
 
         }
         for (int i = 1; i < 7; i++)
@@ -635,18 +635,16 @@ public class BoardManager : MonoBehaviour
     {
         List<Vector2> toDelete = new List<Vector2>();
         GameObject piece = grid.py[(int)pickup.y].x[(int)pickup.x];
-        
-        GameObject drop = null;
         gm.check = false;
         GameObject takePiece = null;
-        
+
 
         foreach (var posiblity in grid.possiblities.Possiblities)
         {
             takePiece = grid.py[(int)posiblity.y].x[(int)posiblity.x];
             if (grid.py[(int)posiblity.y].x[(int)posiblity.x] != null)
             {
-                
+
 
                 if (takePiece.name.Contains("King") || takePiece.tag == piece.tag)
                 {
@@ -668,12 +666,10 @@ public class BoardManager : MonoBehaviour
                 grid.py[(int)posiblity.y].x[(int)posiblity.x] = piece;
                 if (KingCheck(piece.tag))
                 {
-                    print(moves.GetPosByName("BKing"));
-
-                    print(moves.GetPosByName(checkBy));
                     toDelete.Add(posiblity);
                 }
             }
+
 
 
             grid.py[(int)pickup.y].x[(int)pickup.x] = piece;
@@ -718,8 +714,6 @@ public class BoardManager : MonoBehaviour
     }
     public void Move(Vector2 pick, Vector2 drop)
     {
-        secondLast.LastSelectedGo = last.LastSelectedGo;
-        secondLast.LastSelectedGoPos = last.LastSelectedGoPos;
         if (moves.GetGoByVector2(pick).name == pieceName.WPawn.ToString()
             && moves.GetGoByVector2(drop) == null
             && pick.x != drop.x)
@@ -738,7 +732,7 @@ public class BoardManager : MonoBehaviour
         GameObject piece = grid.py[(int)pick.y].x[(int)pick.x];
 
         grid.py[(int)pick.y].x[(int)pick.x] = null;
-
+        // Piece Deleting/Taking 
         if (grid.py[(int)drop.y].x[(int)drop.x] != null)
         {
             grid.py[(int)drop.y].x[(int)drop.x].SetActive(false);
@@ -748,15 +742,11 @@ public class BoardManager : MonoBehaviour
 
         grid.py[(int)drop.y].x[(int)drop.x] = piece;
 
-        Vector3 posToBe;
-        posToBe.x = grid.y[(int)drop.y].x[(int)drop.x].transform.position.x;
-        posToBe.y = grid.y[(int)drop.y].x[(int)drop.x].transform.position.y;
-        posToBe.z = piece.transform.position.z;
-        grid.py[(int)drop.y].x[(int)drop.x].transform.position = posToBe;
 
-        piece.GetComponent<Piece>().piece.Move(drop);
+        piece.GetComponent<Piece>().Move(drop);
         last.LastSelectedGo = grid.py[(int)drop.y].x[(int)drop.x];
         last.LastSelectedGoPos = drop;
+        // Promotion 
         if (moves.GetGoByVector2(drop).name.Contains("Pawn"))
         {
             if (PromotionCheck())
@@ -764,6 +754,7 @@ public class BoardManager : MonoBehaviour
                 PromotionInstantiation();
             }
         }
+        //  Castling
         else if (moves.GetGoByVector2(drop).name.Contains("King"))
         {
             if (pick.x - drop.x == 2)
@@ -773,22 +764,14 @@ public class BoardManager : MonoBehaviour
                 grid.py[(int)drop.y].x[(int)drop.x + 1] = piece;
 
 
-                posToBe.x = grid.y[(int)drop.y].x[(int)drop.x + 1].transform.position.x;
-                posToBe.y = grid.y[(int)drop.y].x[(int)drop.x + 1].transform.position.y;
-                posToBe.z = piece.transform.position.z;
-                grid.py[(int)drop.y].x[(int)drop.x + 1].transform.position = posToBe;
-
-                piece.GetComponent<Piece>().piece.Move(drop);
+                piece.GetComponent<Piece>().Move(drop);
             }
             else if (pick.x - drop.x == -2)
             {
                 piece = grid.py[(int)pick.y].x[7];
                 grid.py[(int)pick.y].x[7] = null;
                 grid.py[(int)drop.y].x[(int)drop.x - 1] = piece;
-                posToBe.x = grid.y[(int)drop.y].x[(int)drop.x - 1].transform.position.x;
-                posToBe.y = grid.y[(int)drop.y].x[(int)drop.x - 1].transform.position.y;
-                posToBe.z = piece.transform.position.z;
-                grid.py[(int)drop.y].x[(int)drop.x - 1].transform.position = posToBe;
+                piece.GetComponent<Piece>().Move(drop);
             }
         }
         MovePlus();
@@ -801,47 +784,53 @@ public class BoardManager : MonoBehaviour
     void MovePlus()
     {
         totalMovesCount += 1;
-        movesCountText.text = $"{totalMovesCount} || {grid.history.Count}";
+        movesCountText.text = $"{totalMovesCount} || {history.Count}";
     }
     void GoMove(int where)
     {
-        if (totalMovesCount + where >= 0 && totalMovesCount + where <= grid.history.Count-1)
+        if (totalMovesCount+where>=0 && totalMovesCount+where <=history.Count-1)
         {
-
             totalMovesCount += where;
-            print(grid.history.Count);
-            movesCountText.text = $"{totalMovesCount} || {grid.history.Count}";
 
-            /*            grid.py = grid.history[currentMoveCount + where].y;
-            */
+
+            print(totalMovesCount);
+            foreach (var item in grid.allPiecesObj)
+            {
+                item.SetActive(false);
+            }
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    if (grid.py[i].x[j]!=null)
+                    if (history[0].y[i].x[j] != null)
                     {
-                        /*grid.py[i].x[j].SetActive(false);*/
-                        grid.py[i].x[j].SetActive(false);
-                        grid.py[i].x[j] = null;
-
-                    }
-                    if (grid.history[totalMovesCount].y[i].x[j] != null)
-                    {
-                        print("damm");
-                        grid.py[i].x[j] = grid.history[totalMovesCount].y[i].x[j];
-                        Vector3 pos = grid.y[i].x[j].transform.position;
-                        pos.z -= 2;
-
-                        grid.py[i].x[j].transform.position = pos;
                         grid.py[i].x[j].SetActive(true);
+
+                        grid.py[i].x[j] = history[0].y[i].x[j];
+                        print(history[0].y[i].x[j].name);
+                        grid.py[i].x[j].GetComponent<Piece>().Move(new Vector3(j, i));
+
                     }
                 }
             }
         }
+        
+        
+
+
     }
     void SaveMove()
     {
-        grid.history.Add(new History(grid.py));
+        History h = new History();
+        h.y = grid.py;
+        history.Add(h);
+        /*foreach (var item in history[history.Count-1].y)
+        {
+            foreach (var i in item.x)
+            {
+                print(i);
+            }
+        }*/
     }
     public void CheckmateCheck()
     {
@@ -851,14 +840,17 @@ public class BoardManager : MonoBehaviour
             {
                 foreach (var piece in grid.allPiecesObj)
                 {
-                    if (piece.CompareTag(Enums.colorSide.Black.ToString()))
+                    if (piece.CompareTag(Enums.colorSide.Black.ToString())&& piece.activeInHierarchy)
                     {
                         var pieceScript = piece.GetComponent<Piece>().piece;
                         pieceScript.GetAllMoves();
+                        ValidateDots(pieceScript.Position);
 
-                        if (pieceScript.PossibleMovesCount > 0)
+                        if (grid.allDots.Count > 0)
                         {
+                            print(pieceScript.Position);
                             Deselect();
+
                             return;
                         }
                         Deselect();
@@ -869,12 +861,16 @@ public class BoardManager : MonoBehaviour
             {
                 foreach (var piece in grid.allPiecesObj)
                 {
-                    if (piece.CompareTag(Enums.colorSide.White.ToString()))
+                    if (piece.CompareTag(Enums.colorSide.White.ToString()) && piece.activeInHierarchy)
                     {
                         var pieceScript = piece.GetComponent<Piece>().piece;
                         pieceScript.GetAllMoves();
-                        if (pieceScript.PossibleMovesCount > 0)
+                        ValidateDots(pieceScript.Position);
+
+                        if (grid.allDots.Count > 0)
                         {
+                            print(pieceScript.Position);
+
                             Deselect();
                             return;
                         }
@@ -883,6 +879,7 @@ public class BoardManager : MonoBehaviour
                 }
             }
         }
+        gm.Checkmate();
         print("checkmate");
     }
     bool PromotionCheck()
@@ -1013,15 +1010,15 @@ public class PieceX
 [System.Serializable]
 public class History
 {
-    public GridX[] y = new GridX[8];
+    public GridX[] y;
 
-    public History(GridX[] g)
+    public History()
     {
+        y = new GridX[8];
         for (int i = 0; i < 8; i++)
         {
             y[i] = new GridX();
         }
-        y = g;
     }
 }
 
@@ -1036,7 +1033,6 @@ public class Grid
     public GridX[] py;
     public PieceX[] ppy;
     public Possiblity possiblities;
-    public List<History> history;
     public Grid()
     {
         allTiles = new List<GameObject>();
@@ -1047,7 +1043,6 @@ public class Grid
         dy = new GridX[8];
         ppy = new PieceX[8];
         py = new GridX[8];
-       history = new List<History>();
 
         for (int i = 0; i < 8; i++)
         {
@@ -1056,7 +1051,7 @@ public class Grid
             py[i] = new GridX();
             ppy[i] = new PieceX();
         }
-        
+
     }
 }
 [System.Serializable]
@@ -1076,18 +1071,6 @@ public class Last
     Vector2 lastSelectedGoPos;
     public Last()
     {
-    }
-    public GameObject LastSelectedGo { get => lastSelectedGo; set => lastSelectedGo = value; }
-    public Vector2 LastSelectedGoPos { get => lastSelectedGoPos; set => lastSelectedGoPos = value; }
-}
-[System.Serializable]
-public class SecondLast
-{
-    GameObject lastSelectedGo;
-    Vector2 lastSelectedGoPos;
-    public SecondLast()
-    {
-
     }
     public GameObject LastSelectedGo { get => lastSelectedGo; set => lastSelectedGo = value; }
     public Vector2 LastSelectedGoPos { get => lastSelectedGoPos; set => lastSelectedGoPos = value; }

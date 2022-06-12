@@ -57,9 +57,14 @@ public class GameManager : MonoBehaviour
         check = true;
         checkBy = color;
         mCamera.backgroundColor = seColor;
-        
-/*        bm.CheckmateCheck();
-*/    }
+
+        bm.CheckmateCheck();
+    }
+    public void Checkmate()
+    {
+        mCamera.backgroundColor = Color.blue;
+
+    }
     public void RemoveCheck()
     {
         mCamera.backgroundColor = prColor;

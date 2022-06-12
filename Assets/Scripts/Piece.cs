@@ -155,7 +155,20 @@ public class Piece : MonoBehaviour
 
 
     }
+    public void Move(Vector3 posVector)
+    {
+/*        Vector3 prev = gameObject.transform.position;
+*/        
+        
+        
+        Vector3 posToBe = bM.grid.y[(int)posVector.y].x[(int)posVector.x].transform.position;
+        posToBe.z -= 2;
+        transform.position = posToBe;
+        piece.Move(posVector);
 
+        print($"{piece.Name} is at {piece.Position}");
+/*        print($"prev pos = {prev} then = {posToBe}");
+*/    }
 }
 
 
@@ -817,7 +830,7 @@ public class Bking : IPiece
     }
 }
 
-public abstract class IPiece
+public abstract class IPiece 
 {
     string name;
     string color;
