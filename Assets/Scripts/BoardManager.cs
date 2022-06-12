@@ -18,9 +18,9 @@ public class BoardManager : MonoBehaviour
     public Last last;
     public SecondLast secondLast;
     public GridX[] temp;
-    public IPiece bKing, wKing;
     Transform pieceParrent;
     int totalMovesCount;
+    string checkBy;
     TextMeshProUGUI movesCountText;
     public Grid grid;
     private void Awake()
@@ -185,6 +185,7 @@ public class BoardManager : MonoBehaviour
         transform.GetChild(2).transform.SetSiblingIndex(0);
         gm.turn = "White";
         GenerateBoard();
+        Check();
         totalMovesCount = 0;
         movesCountText.text = $"{totalMovesCount} || {grid.history.Count}";
 
@@ -264,6 +265,7 @@ public class BoardManager : MonoBehaviour
     }
     bool KingCheck(string color)
     {
+        checkBy = "";
         Vector2 move;
         GameObject go;
         bool b1, b2, b3, b4, b5, b6, b7, b8;
@@ -273,7 +275,7 @@ public class BoardManager : MonoBehaviour
 
         if (color == colorSide.Black.ToString())
         {
-            pos = bKing.Position;
+            pos = moves.GetPosByName("BKing");
 
             move = new Vector2(pos.x - 1, pos.y - 1);
             if (moves.InLimit(move))
@@ -281,6 +283,7 @@ public class BoardManager : MonoBehaviour
                 k = moves.GetValitdationForCheck(move, color);
                 if (k.Item1 && k.Item2.name.Contains("WPawn") || k.Item1 && k.Item2.name.Contains("King"))
                 {
+                    checkBy = k.Item2.name;
                     return true;
                 }
             }
@@ -290,13 +293,15 @@ public class BoardManager : MonoBehaviour
                 k = moves.GetValitdationForCheck(move, color);
                 if (k.Item1 && k.Item2.name.Contains("WPawn") || k.Item1 && k.Item2.name.Contains("King"))
                 {
+                    checkBy = k.Item2.name;
                     return true;
                 }
             }
         }
         else
         {
-            pos = wKing.Position;
+            pos = moves.GetPosByName("WKing");
+
 
             move = new Vector2(pos.x - 1, pos.y + 1);
             if (moves.InLimit(move))
@@ -304,6 +309,8 @@ public class BoardManager : MonoBehaviour
                 k = moves.GetValitdationForCheck(move, color);
                 if (k.Item1 && k.Item2.name.Contains("WPawn") || k.Item1 && k.Item2.name.Contains("King"))
                 {
+                    checkBy = k.Item2.name;
+
                     return true;
                 }
             }
@@ -313,45 +320,12 @@ public class BoardManager : MonoBehaviour
                 k = moves.GetValitdationForCheck(move, color);
                 if (k.Item1 && k.Item2.name.Contains("WPawn") || k.Item1 && k.Item2.name.Contains("King"))
                 {
+                    checkBy = k.Item2.name;
+
                     return true;
                 }
             }
-            move = new Vector2(pos.x + 1, pos.y);
-            if (moves.InLimit(move))
-            {
-                k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("King"))
-                {
-                    return true;
-                }
-            }
-            move = new Vector2(pos.x - 1, pos.y);
-            if (moves.InLimit(move))
-            {
-                k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("King"))
-                {
-                    return true;
-                }
-            }
-            move = new Vector2(pos.x, pos.y + 1);
-            if (moves.InLimit(move))
-            {
-                k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("King"))
-                {
-                    return true;
-                }
-            }
-            move = new Vector2(pos.y, pos.y - 1);
-            if (moves.InLimit(move))
-            {
-                k = moves.GetValitdationForCheck(move, color);
-                if (k.Item1 && k.Item2.name.Contains("King"))
-                {
-                    return true;
-                }
-            }
+            
 
         }
         for (int i = 1; i < 7; i++)
@@ -370,6 +344,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsDiagonalTaker(go))
                         {
+                            checkBy = go.name;
 
                             return true;
                         }
@@ -394,6 +369,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsDiagonalTaker(go))
                         {
+                            checkBy = go.name;
 
                             return true;
                         }
@@ -418,6 +394,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsDiagonalTaker(go))
                         {
+                            checkBy = go.name;
 
                             return true;
                         }
@@ -442,6 +419,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsDiagonalTaker(go))
                         {
+                            checkBy = go.name;
 
                             return true;
                         }
@@ -465,6 +443,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsPlusTaker(go))
                         {
+                            checkBy = go.name;
 
                             return true;
                         }
@@ -489,7 +468,8 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsPlusTaker(go))
                         {
-                            print(go.name);
+                            checkBy = go.name;
+
                             return true;
                         }
                         else
@@ -513,7 +493,8 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsPlusTaker(go))
                         {
-                            print(go.name);
+                            checkBy = go.name;
+
                             return true;
                         }
                         else
@@ -537,7 +518,7 @@ public class BoardManager : MonoBehaviour
                         go = moves.GetGoByVector2(move);
                         if (moves.IsPlusTaker(go))
                         {
-                            print(go.name);
+                            checkBy = go.name;
                             return true;
                         }
                         else
@@ -559,6 +540,8 @@ public class BoardManager : MonoBehaviour
                         k = moves.GetValitdationForCheck(move, color);
                         if (k.Item1 && k.Item2.name.Contains("Knight"))
                         {
+                            checkBy = k.Item2.name;
+
                             return true;
                         }
                     }
@@ -568,6 +551,8 @@ public class BoardManager : MonoBehaviour
                         k = moves.GetValitdationForCheck(move, color);
                         if (k.Item1 && k.Item2.name.Contains("Knight"))
                         {
+                            checkBy = k.Item2.name;
+
                             return true;
                         }
                     }
@@ -577,6 +562,8 @@ public class BoardManager : MonoBehaviour
                         k = moves.GetValitdationForCheck(move, color);
                         if (k.Item1 && k.Item2.name.Contains("Knight"))
                         {
+                            checkBy = k.Item2.name;
+
                             return true;
                         }
                     }
@@ -586,6 +573,8 @@ public class BoardManager : MonoBehaviour
                         k = moves.GetValitdationForCheck(move, color);
                         if (k.Item1 && k.Item2.name.Contains("Knight"))
                         {
+                            checkBy = k.Item2.name;
+
                             return true;
                         }
                     }
@@ -596,7 +585,49 @@ public class BoardManager : MonoBehaviour
 
             }
         }
+        move = new Vector2(pos.x + 1, pos.y);
+        if (moves.InLimit(move))
+        {
+            k = moves.GetValitdationForCheck(move, color);
+            if (k.Item1 && k.Item2.name.Contains("King"))
+            {
+                checkBy = k.Item2.name;
 
+                return true;
+            }
+        }
+        move = new Vector2(pos.x - 1, pos.y);
+        if (moves.InLimit(move))
+        {
+            k = moves.GetValitdationForCheck(move, color);
+            if (k.Item1 && k.Item2.name.Contains("King"))
+            {
+                checkBy = k.Item2.name;
+
+                return true;
+            }
+        }
+        move = new Vector2(pos.x, pos.y + 1);
+        if (moves.InLimit(move))
+        {
+            k = moves.GetValitdationForCheck(move, color);
+            if (k.Item1 && k.Item2.name.Contains("King"))
+            {
+                checkBy = k.Item2.name;
+
+                return true;
+            }
+        }
+        move = new Vector2(pos.y, pos.y - 1);
+        if (moves.InLimit(move))
+        {
+            k = moves.GetValitdationForCheck(move, color);
+            if (k.Item1 && k.Item2.name.Contains("King"))
+            {
+                checkBy = k.Item2.name;
+                return true;
+            }
+        }
         return false;
 
     }
@@ -604,61 +635,52 @@ public class BoardManager : MonoBehaviour
     {
         List<Vector2> toDelete = new List<Vector2>();
         GameObject piece = grid.py[(int)pickup.y].x[(int)pickup.x];
-        GameObject takePiece;
-        Vector2 drop;
+        
+        GameObject drop = null;
         gm.check = false;
-        for (int i = 0; i < grid.possiblities.Possiblities.Count; i++)
+        GameObject takePiece = null;
+        
+
+        foreach (var posiblity in grid.possiblities.Possiblities)
         {
-            takePiece = null;
-            drop = grid.possiblities.Possiblities[i];
-            if (grid.py[(int)drop.y].x[(int)drop.x] != null)
+            takePiece = grid.py[(int)posiblity.y].x[(int)posiblity.x];
+            if (grid.py[(int)posiblity.y].x[(int)posiblity.x] != null)
             {
-                takePiece = grid.py[(int)drop.y].x[(int)drop.x];
-
-            }
-
-            /*if (*//*same piece check*//*grid.py[(int)p.y].x[(int)p.x] != null &&
-                grid.py[(int)p.y].x[(int)p.x].tag == grid.py[(int)pickup.y].x[(int)pickup.x].tag ||
-               *//*if drop is king*//* grid.py[(int)p.y].x[(int)p.x] != null &&
-               grid.py[(int)p.y].x[(int)p.x].name.Contains("King"))
-            {
-                toDelete.Add(p);
-                print("deleted");
-                continue;
-            }*/
-
-            if (grid.py[(int)drop.y].x[(int)drop.x] != null)
-            {
-                if (grid.py[(int)drop.y].x[(int)drop.x].tag == grid.py[(int)pickup.y].x[(int)pickup.x].tag
-                    || grid.py[(int)drop.y].x[(int)drop.x].name.Contains("King"))
-                {
-                    toDelete.Add(drop);
-                    
-                }
-
-            }
-            grid.py[(int)drop.y].x[(int)drop.x] = null;
-            grid.py[(int)pickup.y].x[(int)pickup.x] = null;
-            grid.py[(int)drop.y].x[(int)drop.x] = piece;
-            
-            
-
-
-            if (KingCheck(piece.tag))
-            {
-                print("check deleted");
                 
-                toDelete.Add(drop);
-            }
-            /*            gm.RemoveCheck();*/
 
-            /* grid.py = null;
-             grid.py = temp;*/
+                if (takePiece.name.Contains("King") || takePiece.tag == piece.tag)
+                {
+                    toDelete.Add(posiblity);
+                }
+                else
+                {
+                    grid.py[(int)pickup.y].x[(int)pickup.x] = null;
+                    grid.py[(int)posiblity.y].x[(int)posiblity.x] = piece;
+                    if (KingCheck(piece.tag))
+                    {
+                        toDelete.Add(posiblity);
+                    }
+                }
+            }
+            else
+            {
+                grid.py[(int)pickup.y].x[(int)pickup.x] = null;
+                grid.py[(int)posiblity.y].x[(int)posiblity.x] = piece;
+                if (KingCheck(piece.tag))
+                {
+                    print(moves.GetPosByName("BKing"));
+
+                    print(moves.GetPosByName(checkBy));
+                    toDelete.Add(posiblity);
+                }
+            }
+
+
             grid.py[(int)pickup.y].x[(int)pickup.x] = piece;
-            grid.py[(int)drop.y].x[(int)drop.x] = takePiece;
+            grid.py[(int)posiblity.y].x[(int)posiblity.x] = takePiece;
 
         }
-       
+
         foreach (var item in toDelete)
         {
             grid.possiblities.Possiblities.Remove(item);
@@ -692,6 +714,7 @@ public class BoardManager : MonoBehaviour
         {
             Destroy(item);
         }
+        grid.allDots = new List<GameObject>();
     }
     public void Move(Vector2 pick, Vector2 drop)
     {
@@ -1051,11 +1074,9 @@ public class Last
 {
     GameObject lastSelectedGo;
     Vector2 lastSelectedGoPos;
-
     public Last()
     {
     }
-
     public GameObject LastSelectedGo { get => lastSelectedGo; set => lastSelectedGo = value; }
     public Vector2 LastSelectedGoPos { get => lastSelectedGoPos; set => lastSelectedGoPos = value; }
 }
@@ -1064,12 +1085,10 @@ public class SecondLast
 {
     GameObject lastSelectedGo;
     Vector2 lastSelectedGoPos;
-
     public SecondLast()
     {
 
     }
-
     public GameObject LastSelectedGo { get => lastSelectedGo; set => lastSelectedGo = value; }
     public Vector2 LastSelectedGoPos { get => lastSelectedGoPos; set => lastSelectedGoPos = value; }
 }

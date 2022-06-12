@@ -87,12 +87,12 @@ public class Piece : MonoBehaviour
         else if (name.Contains(pieceName.WKing.ToString()))
         {
             piece = new Wking(color, position);
-            bM.wKing = piece;
+            
         }
         else if (name.Contains(pieceName.BKing.ToString()))
         {
             piece = new Bking(color, position);
-            bM.bKing = piece;
+            
         }
         piece.Moves = moves;
         piece.Name = name;

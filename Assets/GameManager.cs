@@ -53,10 +53,11 @@ public class GameManager : MonoBehaviour
         }
     }
     public void MakeCheck(string color)
-    {
+    {   
         check = true;
         checkBy = color;
         mCamera.backgroundColor = seColor;
+        
 /*        bm.CheckmateCheck();
 */    }
     public void RemoveCheck()

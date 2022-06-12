@@ -109,7 +109,26 @@ public class Moves : MonoBehaviour
         return new Tuple<bool, GameObject>(false, null);
 
     }
-    
+    public Vector2 GetPosByName(string obj)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                if (bm.grid.py[i].x[j]!=null)
+                {
+                    if (bm.grid.py[i].x[j].name.Contains(obj))
+                    {
+                        return new Vector2(j, i);
+                    }
+                }
+                
+            }
+        }
+        print(obj);
+        print("king not found");
+        return new Vector2(-1, -1);
+    }
     public GameObject GetGoByVector2(Vector2 position)
     {
         try
