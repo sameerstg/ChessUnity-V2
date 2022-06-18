@@ -22,7 +22,7 @@ public class BoardManager : MonoBehaviour
     string checkBy;
     TextMeshProUGUI movesCountText;
     public Grid grid;
-    public List<History> history= new List<History>();
+    
     private void Awake()
     {
         _instance = this;
@@ -35,6 +35,7 @@ public class BoardManager : MonoBehaviour
         gm = GameManager._instance;
         dot = dot = Resources.Load<GameObject>("Dot");
         dotParrent = transform.GetChild(2).gameObject;
+        
         GenerateBoard();
 
     }
@@ -48,11 +49,27 @@ public class BoardManager : MonoBehaviour
         {
             GoMove(1);
         }
+        else if (Input.GetKeyDown(KeyCode.S))
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (grid.history[totalMovesCount].y[i].x[j] != null)
+                    {
+                        print($"{j} , {i}");
+                        print(moves.GetGoByVector2(new Vector2(j,i)).name);
+
+                    }
+                }
+            }
+        }
     }
     
     public void GenerateBoard()
     {
         grid = new Grid();
+        
         Material black = Resources.Load<Material>("Black"), white = Resources.Load<Material>("White");
         GameObject Cube = Resources.Load<GameObject>("Cube");
         Material mat = white;
@@ -163,7 +180,7 @@ public class BoardManager : MonoBehaviour
             }
         }
         SaveMove();
-        movesCountText.text = $"{totalMovesCount} || {history.Count}";
+        movesCountText.text = $"{totalMovesCount} || {grid.history.Count}";
 
         /*FlipBoard();*/
         FlipPieces();
@@ -187,7 +204,7 @@ public class BoardManager : MonoBehaviour
         GenerateBoard();
         Check();
         totalMovesCount = 0;
-        movesCountText.text = $"{totalMovesCount} || {history.Count}";
+        movesCountText.text = $"{totalMovesCount} || {grid.history.Count}";
 
 
     }
@@ -784,16 +801,16 @@ public class BoardManager : MonoBehaviour
     void MovePlus()
     {
         totalMovesCount += 1;
-        movesCountText.text = $"{totalMovesCount} || {history.Count}";
+        movesCountText.text = $"{totalMovesCount} || {grid.history.Count}";
     }
     void GoMove(int where)
     {
-        if (totalMovesCount+where>=0 && totalMovesCount+where <=history.Count-1)
+        if (totalMovesCount+where>=0 && totalMovesCount+where <=grid.history.Count-1)
         {
             totalMovesCount += where;
+            movesCountText.text = $"{totalMovesCount} || {grid.history.Count}";
 
-
-            print(totalMovesCount);
+            /*print(totalMovesCount);*/
             foreach (var item in grid.allPiecesObj)
             {
                 item.SetActive(false);
@@ -802,12 +819,12 @@ public class BoardManager : MonoBehaviour
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    if (history[0].y[i].x[j] != null)
+                    if (grid.history[0].y[i].x[j] != null)
                     {
                         grid.py[i].x[j].SetActive(true);
 
-                        grid.py[i].x[j] = history[0].y[i].x[j];
-                        print(history[0].y[i].x[j].name);
+                        grid.py[i].x[j] = grid.history[0].y[i].x[j];
+                        
                         grid.py[i].x[j].GetComponent<Piece>().Move(new Vector3(j, i));
 
                     }
@@ -823,14 +840,9 @@ public class BoardManager : MonoBehaviour
     {
         History h = new History();
         h.y = grid.py;
-        history.Add(h);
-        /*foreach (var item in history[history.Count-1].y)
-        {
-            foreach (var i in item.x)
-            {
-                print(i);
-            }
-        }*/
+        grid.history.Add(h);
+        
+        
     }
     public void CheckmateCheck()
     {
@@ -1003,6 +1015,11 @@ public class GridX
     public GameObject[] x = new GameObject[8];
 }
 [System.Serializable]
+public class GridVX
+{
+    public Vector2[] x = new Vector2[8];
+}
+[System.Serializable]
 public class PieceX
 {
     public IPiece[] ppx = new IPiece[8];
@@ -1011,13 +1028,16 @@ public class PieceX
 public class History
 {
     public GridX[] y;
+    public GridVX[] vy;
 
     public History()
     {
         y = new GridX[8];
+        vy = new GridVX[8];
         for (int i = 0; i < 8; i++)
         {
             y[i] = new GridX();
+            vy[i] = new GridVX();
         }
     }
 }
@@ -1033,6 +1053,7 @@ public class Grid
     public GridX[] py;
     public PieceX[] ppy;
     public Possiblity possiblities;
+    public List<History>history= new List<History>();
     public Grid()
     {
         allTiles = new List<GameObject>();
@@ -1043,7 +1064,7 @@ public class Grid
         dy = new GridX[8];
         ppy = new PieceX[8];
         py = new GridX[8];
-
+        history = new List<History>();
         for (int i = 0; i < 8; i++)
         {
             y[i] = new GridX();
